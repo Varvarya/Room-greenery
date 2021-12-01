@@ -1,7 +1,7 @@
 import {Op} from 'sequelize';
 import {Organization} from "../models";
 
-class OrganizationsController {
+class OrganizationController {
 
     public async get(req, res) {
         const title = req.params.title;
@@ -69,4 +69,4 @@ class OrganizationsController {
     }
 }
 
-export default OrganizationsController;
+export default OrganizationController;
