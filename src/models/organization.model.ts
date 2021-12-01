@@ -29,6 +29,7 @@ export function OrganizationFactory(sequelize: Sequelize): OrganizationStatic {
     }, {
         freezeTableName: true,
         tableName: 'Organization',
-        timestamps: false
+        timestamps: false,
+        underscored: true,
     })
 }
