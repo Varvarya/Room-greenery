@@ -1,8 +1,9 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import organizationsRouter from './routers/OrganizationsRouter';
+import organizationsRouter from './routers/organization.router';
 import {sequelize} from './models';
-import JWTAuthRouter from "./routers/JWTAuthRouter";
+import JWTAuthRouter from "./routers/JWTAuth.router";
+import userRouter from './routers/user.routes';
 
 class Server {
     private app;
@@ -28,8 +29,16 @@ class Server {
     }
 
     private routerConfig() {
+        this.app.use((req, res, next) => {
+            res.header(
+                "Access-Control-Allow-Headers",
+                "x-access-token, Origin, Content-Type, Accept"
+            );
+            next();
+        });
         this.app.use('/organizations', organizationsRouter);
         this.app.use('/auth', JWTAuthRouter);
+        this.app.use('/users', userRouter);
     }
 
     public start = (port: number) => {

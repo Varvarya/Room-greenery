@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import OrganizationsController from '../controllers/OrganizationsController';
+import OrganizationController from '../controllers/organization.controller';
 
 const router = Router();
-const organizationsController = new OrganizationsController();
+const organizationsController = new OrganizationController();
 
 router.get('/', organizationsController.get);
 router.get('/:title', organizationsController.get);
