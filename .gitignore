@@ -1,5 +1,8 @@
 node_modules
+.idea
 data
 dist
 postgresdata
-authconfig
+src/authconfig
+.env
+src/dbconfig/db.config.ts
