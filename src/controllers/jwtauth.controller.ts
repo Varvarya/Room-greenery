@@ -1,4 +1,4 @@
-import {Role, User} from '../models';
+import {Organization, Role, User} from '../models';
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import secret from "../authconfig/auth.config";
@@ -12,15 +12,26 @@ class JwtAuthController {
                     title: req.body.role
                 }
             }).then(role => {
-                User.create({
-                    name: req.body.name,
-                    surname: req.body.surname,
-                    email: req.body.email,
-                    password: bcrypt.hashSync(req.body.password, 8),
-                    role_id: role.id,
-                }).then(() => {
-                    return res.send({message: "User was registered successfully!"});
-                });
+                Organization.findOne({
+                    where: {
+                        title: req.body.organization
+                    }
+                }).then(organization => {
+                    User.create({
+                        name: req.body.name,
+                        surname: req.body.surname,
+                        email: req.body.email,
+                        password: bcrypt.hashSync(req.body.password, 8),
+                        role_id: role.id,
+                        organization_id: organization.id,
+                    }).then(() => {
+                        return res.send({message: "User was registered successfully!"});
+                    }).catch(err => {
+                        return res.status(500).send({message: err.message});
+                    })
+                }).catch(err => {
+                    return res.status(500).send({message: err.message});
+                })
             }).catch(err => {
                 return res.status(500).send({message: err.message});
             })
@@ -61,7 +72,8 @@ class JwtAuthController {
                     surname: user.surname,
                     email: user.email,
                     role_id: user.role_id,
-                    accessToken: token
+                    organization_id: user.organization_id,
+                    access_token: token
                 });
             })
             .catch(err => {

@@ -2,10 +2,14 @@ import {Role, User} from '../models';
 
 const checkDuplicateUsernameOrEmail = (req, res, next) => {
     // Username
+    const name = req.body.name || null;
+    const surname = req.body.surname || null
+
+
     User.findOne({
         where: {
-            name: req.body.name,
-            surname: req.body.surname,
+            name: name,
+            surname: surname,
         }
     }).then(user => {
         if (user) {

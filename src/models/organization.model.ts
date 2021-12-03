@@ -20,7 +20,7 @@ export function OrganizationFactory(sequelize: Sequelize): OrganizationStatic {
         id: {
             type: DataTypes.UUID,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4
+            defaultValue: DataTypes.UUIDV4,
         },
         title: {
             type: DataTypes.STRING,

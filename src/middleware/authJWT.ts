@@ -36,9 +36,39 @@ const isAdmin = (req, res, next) => {
     });
 };
 
+const isModerator = (req, res, next) => {
+    User.findByPk(req.userId).then(user => {
+        Role.findByPk(user.role_id).then(role => {
+            if (role.title !== 'moderator') {
+                return res.status(403).send({
+                    message: "Require Moderator Role!"
+                });
+            } else {
+                next();
+            }
+        });
+    });
+};
+
+const isAdminOrModer = (req, res, next) => {
+    User.findByPk(req.userId).then(user => {
+        Role.findByPk(user.role_id).then(role => {
+            if (role.title !== 'moderator' && role.title !== 'admin') {
+                return res.status(403).send({
+                    message: "Require Admin or Moderator Role!"
+                });
+            } else {
+                next();
+            }
+        });
+    });
+};
+
 const authJwt = {
     verifyToken: verifyToken,
     isAdmin: isAdmin,
+    isModerator: isModerator,
+    isAdminOrModer: isAdminOrModer,
 };
 
 export default authJwt;

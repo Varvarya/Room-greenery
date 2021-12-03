@@ -7,6 +7,7 @@ export interface UserAttributes {
     email: string;
     password: string;
     role_id?: number;
+    organization_id: string;
 }
 
 export interface UserModel extends Model<UserAttributes>, UserAttributes {

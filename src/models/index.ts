@@ -21,5 +21,11 @@ export const User = UserFactory(sequelize);
 export const Role = RoleFactory(sequelize);
 User.belongsTo(Role, {
     foreignKey: 'role_id',
+    onDelete: 'CASCADE',
 });
+User.belongsTo(Organization, {
+    foreignKey: {name: 'organization_id', allowNull: true},
+    onDelete: 'CASCADE',
+})
 Role.hasMany(User);
+Organization.hasMany(User);
