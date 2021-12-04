@@ -3,6 +3,7 @@ import Sequelize from "sequelize";
 import {OrganizationFactory} from "./organization.model";
 import {UserFactory} from "./user.model";
 import {RoleFactory} from "./role.model";
+import {ParamsFactory} from "./parameters.model";
 
 
 export const sequelize = new Sequelize.Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
@@ -19,6 +20,8 @@ export const sequelize = new Sequelize.Sequelize(dbConfig.DB, dbConfig.USER, dbC
 export const Organization = OrganizationFactory(sequelize);
 export const User = UserFactory(sequelize);
 export const Role = RoleFactory(sequelize);
+export const Params = ParamsFactory(sequelize);
+
 User.belongsTo(Role, {
     foreignKey: 'role_id',
     onDelete: 'CASCADE',
@@ -26,6 +29,6 @@ User.belongsTo(Role, {
 User.belongsTo(Organization, {
     foreignKey: {name: 'organization_id', allowNull: true},
     onDelete: 'CASCADE',
-})
+});
 Role.hasMany(User);
 Organization.hasMany(User);
