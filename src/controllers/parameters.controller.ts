@@ -1,24 +1,19 @@
-import {Params} from "../models";
-
-enum ParamsStatus {
-    Critical,
-    Bad,
-    Normal,
-    Good,
-    Excellent,
-    Perfect
-}
+import {Device, Params, Plant} from "../models";
+import {ParamsStatus} from "../models/parameters.model";
 
 interface ParamsControllerAttributes {
     status: ParamsStatus;
 
-    get(req: Request, res: Response) : Promise<void>;
-    update(req: Request, res: Response) : Promise<void>;
-    deleteById(req: Request, res: Response) : Promise<void>;
-    check(current: string, goal: string) : Promise<string>;
+    get(req: Request, res: Response): Promise<void>;
+
+    update(req: Request, res: Response): Promise<void>;
+
+    deleteById(req: Request, res: Response): Promise<void>;
+
+    check(current: string, goal: string): Promise<string>;
 }
 
-class ParamsController implements ParamsControllerAttributes{
+class ParamsController implements ParamsControllerAttributes {
     status = ParamsStatus.Normal;
 
     public async get(req, res) {
@@ -40,7 +35,7 @@ class ParamsController implements ParamsControllerAttributes{
         const id = req.params.id;
         const {CO2_level, ground_humidity, air_humidity, air_temperature, light_level} = req.body;
 
-        await Params.findByPk(id).then(data => {
+        await Params.findByPk(id).then(async data => {
             if (data) {
                 if (CO2_level) data.set({CO2_level: CO2_level});
 
@@ -52,9 +47,13 @@ class ParamsController implements ParamsControllerAttributes{
 
                 if (light_level) data.set({light_level: light_level});
 
-                data.save();
+                await data.save();
 
-                return res.send('Params was successfully updated').status(200);
+                const target = await this.findPlantTargetParamsId(id);
+
+                const status = await this.check(id, target);
+
+                return res.send(`Params was successfully updated. Parameters are in ${this.status[status]} condition`).status(200);
             } else {
                 res.status(500).send({
                     message:
@@ -77,13 +76,31 @@ class ParamsController implements ParamsControllerAttributes{
                 id: id
             }
         }).then(() => {
-            res.send('Params was successfully deleted').status(200);
+            return res.send('Params was successfully deleted').status(200);
         }).catch(err => {
-            res.status(500).send({
+            return res.status(500).send({
                 message:
                     err.message || "Some error occurred while deleting params"
             });
         });
+    }
+
+    public async findPlantTargetParamsId(paramsId: string) {
+        const device = await Device.findOne({
+            where: {
+                current_params_id: paramsId
+            }
+        }).then(async device => {
+            await Plant.findByPk(device.plant_id)
+                .then((data) => {
+                    if (data) return data.target_params_id;
+                }).catch(() => {
+                    return null;
+                }
+            )
+        })
+
+        return null;
     }
 
     public async check(current: string, goal: string) {
@@ -94,7 +111,8 @@ class ParamsController implements ParamsControllerAttributes{
 
         for (const [key, value] of Object.entries(currentParams)) {
             points += +((Math.abs(value - goalParams[key]) / value) < Params[key]);
-        };
+        }
+        ;
 
         return ParamsStatus[points];
     }

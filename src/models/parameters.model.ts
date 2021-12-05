@@ -1,7 +1,16 @@
 import {BuildOptions, DataTypes, Model, Sequelize} from "sequelize";
 
+export enum ParamsStatus {
+    Critical,
+    Bad,
+    Normal,
+    Good,
+    Excellent,
+    Perfect
+}
+
 export interface ParamsAttributes {
-    id?: number;
+    id?: string;
     CO2_level: number;
     ground_humidity: number;
     air_humidity: number;

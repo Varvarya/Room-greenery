@@ -12,23 +12,24 @@ class JwtAuthController {
                     title: req.body.role
                 }
             }).then(role => {
-                Organization.findOne({
+                Organization.findOrCreate({
                     where: {
                         title: req.body.organization
                     }
-                }).then(organization => {
+                }).then((value) => {
                     User.create({
                         name: req.body.name,
                         surname: req.body.surname,
                         email: req.body.email,
                         password: bcrypt.hashSync(req.body.password, 8),
                         role_id: role.id,
-                        organization_id: organization.id,
+                        organization_id: value[0].id,
                     }).then(() => {
                         return res.send({message: "User was registered successfully!"});
                     }).catch(err => {
                         return res.status(500).send({message: err.message});
                     })
+
                 }).catch(err => {
                     return res.status(500).send({message: err.message});
                 })
