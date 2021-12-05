@@ -5,10 +5,10 @@ export interface RoleAttributes {
     title: string;
 }
 
-export const Roles = {
-    'user' : 1,
-    'moderator' : 2,
-    'admin' : 3,
+export enum Roles {
+    User=1,
+    Moderator,
+    Admin
 }
 
 export interface RoleModel extends Model<RoleAttributes>, RoleAttributes {
