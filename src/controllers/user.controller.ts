@@ -3,7 +3,6 @@ import {Organization, User} from "../models";
 import bcrypt from "bcryptjs";
 
 class UserController {
-
     public async get(req, res) {
         const name = req.body.name;
         const surname = req.body.surname;
@@ -30,6 +29,19 @@ class UserController {
                 res.status(500).send({
                     message:
                         err.message || "Some error occurred while getting users"
+                });
+            });
+    }
+
+    public async getMe(req, res) {
+        await User.findByPk(req.userId)
+            .then(data => {
+                res.send(data).status(200);
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Some error occurred while getting user"
                 });
             });
     }
