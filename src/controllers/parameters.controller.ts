@@ -1,6 +1,26 @@
 import {Params} from "../models";
 
-class ParamsController {
+enum ParamsStatus {
+    Critical,
+    Bad,
+    Normal,
+    Good,
+    Excellent,
+    Perfect
+}
+
+interface ParamsControllerAttributes {
+    status: ParamsStatus;
+
+    get(req: Request, res: Response) : Promise<void>;
+    update(req: Request, res: Response) : Promise<void>;
+    deleteById(req: Request, res: Response) : Promise<void>;
+    check(current: string, goal: string) : Promise<string>;
+}
+
+class ParamsController implements ParamsControllerAttributes{
+    status = ParamsStatus.Normal;
+
     public async get(req, res) {
         const id = req.body.id;
 
@@ -33,6 +53,7 @@ class ParamsController {
                 if (light_level) data.set({light_level: light_level});
 
                 data.save();
+
                 return res.send('Params was successfully updated').status(200);
             } else {
                 res.status(500).send({
@@ -63,6 +84,19 @@ class ParamsController {
                     err.message || "Some error occurred while deleting params"
             });
         });
+    }
+
+    public async check(current: string, goal: string) {
+        const currentParams = await Params.findByPk(current);
+        const goalParams = await Params.findByPk(goal);
+
+        let points = 0;
+
+        for (const [key, value] of Object.entries(currentParams)) {
+            points += +((Math.abs(value - goalParams[key]) / value) < Params[key]);
+        };
+
+        return ParamsStatus[points];
     }
 }
 

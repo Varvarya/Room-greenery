@@ -14,6 +14,11 @@ export interface ParamsModel extends Model<ParamsAttributes>, ParamsAttributes {
 }
 
 export class Params extends Model<ParamsModel, ParamsAttributes> {
+    CO2_level_aberrance = 10;
+    ground_humidity_aberrance = 10;
+    air_humidity_aberrance = 10;
+    air_temperature_aberrance = 10;
+    light_level_aberrance = 10;
 }
 
 export type ParamsStatic = typeof Model & {
