@@ -1,4 +1,5 @@
 import {BuildOptions, DataTypes, Model, Sequelize} from "sequelize";
+import { Roles } from "./role.model";
 
 export interface UserAttributes {
     id?: string;
@@ -44,6 +45,15 @@ export function UserFactory(sequelize: Sequelize): UserStatic {
         password: {
             type: DataTypes.STRING,
             allowNull: false,
+        },
+        role_id: {
+            type: DataTypes.NUMBER,
+            allowNull: false,
+            defaultValue: Roles.User,
+        },
+        organization_id: {
+            type: DataTypes.UUID,
+            allowNull: true,
         },
     }, {
         getterMethods: {
