@@ -5,29 +5,50 @@ import {Router} from "express";
 const router = Router();
 const userController = new UserController();
 
-router.get("/api/test/all", userController.allAccess);
+router.get("/test/all", userController.allAccess);
 router.get(
-    "/api/test/user",
+    "/test/user",
     [authJwt.verifyToken],
     userController.userBoard
 );
 router.get(
-    "/api/test/admin",
+    "/test/moder",
+    [authJwt.verifyToken, authJwt.isAdmin],
+    userController.moderatorBoard
+);
+router.get(
+    "/test/admin",
     [authJwt.verifyToken, authJwt.isAdmin],
     userController.adminBoard
 );
+router.get('/all',
+    [authJwt.verifyToken, authJwt.isAdmin],
+    userController.getAll
+)
+router.get('/me',
+    [authJwt.verifyToken],
+    userController.getMe
+);
+router.get('/',
+    [authJwt.verifyToken, authJwt.isAdminOrModer],
+    userController.get
+);
+router.get('/user/:id?',
+    [authJwt.verifyToken],
+    userController.getById
+);
 router.delete(
-    "",
+    "/user",
     [authJwt.verifyToken, authJwt.isAdminOrModer],
     userController.deleteByName
 );
 router.delete(
-    "/:userId",
+    "/user/:userId",
     [authJwt.verifyToken, authJwt.isAdminOrModer],
     userController.deleteById
 );
 router.put(
-    '/:userId',
+    '/user/:userId',
     [authJwt.verifyToken, authJwt.isAdminOrModer,
         verifySignUp.checkDuplicateUsernameOrEmail,
         verifySignUp.checkRoleExisted],

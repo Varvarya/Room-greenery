@@ -47,7 +47,7 @@ export function UserFactory(sequelize: Sequelize): UserStatic {
             allowNull: false,
         },
         role_id: {
-            type: DataTypes.NUMBER,
+            type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: Roles.User,
         },

@@ -3,6 +3,19 @@ import {Organization, User} from "../models";
 import bcrypt from "bcryptjs";
 
 class UserController {
+    public async getAll (req, res) {
+        await User.findAndCountAll()
+            .then(data => {
+                res.send(data).status(200);
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Some error occurred while getting user"
+                });
+            });
+    }
+
     public async get(req, res) {
         const name = req.body.name;
         const surname = req.body.surname;
@@ -33,8 +46,29 @@ class UserController {
             });
     }
 
+    public async getById(req, res) {
+        const id = (req.params.id)?(req.params.id):req.userId;
+
+        await User.findByPk(req.userId,
+            {
+                attributes: {exclude: ['password', 'role_id']}
+            })
+            .then(data => {
+                res.send(data).status(200);
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Some error occurred while getting user"
+                });
+            });
+    }
+
     public async getMe(req, res) {
-        await User.findByPk(req.userId)
+        await User.findByPk(req.userId,
+            {
+                attributes: {exclude: ['password', 'role_id']}
+            })
             .then(data => {
                 res.send(data).status(200);
             })
