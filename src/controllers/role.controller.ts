@@ -32,6 +32,7 @@ class RoleController {
 
         const role = {
             title: req.body.title,
+            id: 4,
         };
 
         await Role.create(role)

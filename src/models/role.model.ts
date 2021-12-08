@@ -8,7 +8,7 @@ export interface RoleAttributes {
 export enum Roles {
     User=1,
     Moderator,
-    Admin
+    Administrator
 }
 
 export interface RoleModel extends Model<RoleAttributes>, RoleAttributes {
@@ -25,9 +25,8 @@ export type RoleStatic = typeof Model & {
 export function RoleFactory(sequelize: Sequelize): RoleStatic {
     return <RoleStatic>sequelize.define("Role", {
         id: {
-            type: DataTypes.NUMBER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
         },
         title: {
             type: DataTypes.STRING,
