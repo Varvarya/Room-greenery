@@ -2,7 +2,7 @@ import {BuildOptions, DataTypes, Model, Sequelize} from "sequelize";
 
 export interface PlantAttributes {
     id?: string;
-    species_id?: number;
+    species_id?: string;
     target_params_id?: string;
 }
 
@@ -25,11 +25,11 @@ export function PlantFactory(sequelize: Sequelize): PlantStatic {
         },
         species_id: {
             type: DataTypes.UUID,
-            allowNull: false
+            allowNull: true
         },
         target_params_id: {
             type: DataTypes.UUID,
-            allowNull: false
+            allowNull: true
         },
     }, {
         freezeTableName: true,
