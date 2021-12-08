@@ -1,4 +1,5 @@
-import {Species} from "../models";
+import Sequelize from "sequelize";
+import {Params, Plant, Species} from "../models";
 
 class SpeciesController {
 
@@ -103,6 +104,44 @@ class SpeciesController {
                     err.message || "Some error occurred while deleting Species"
             });
         });
+    }
+
+    public async defaultParamsForSpecies(req, res) {
+        const species = await Species.findOne({
+            where: {
+                name: req.params.name
+            }
+        });
+
+        const averages = await Params.findAll({
+            attributes: {
+                exclude: [
+                    "id",
+                    "co2_level",
+                    "ground_humidity",
+                    "air_humidity",
+                    "air_temperature",
+                    "light_level",
+                ],
+                include: [
+                    [Sequelize.fn("AVG", Sequelize.col("Parameters.co2_level")), "co2_level_average"],
+                    [Sequelize.fn("AVG", Sequelize.col("Parameters.ground_humidity")), "ground_humidity_average"],
+                    [Sequelize.fn("AVG", Sequelize.col("Parameters.air_humidity")), "air_humidity_average"],
+                    [Sequelize.fn("AVG", Sequelize.col("Parameters.air_temperature")), "air_temperature_average"],
+                    [Sequelize.fn("AVG", Sequelize.col("Parameters.light_level")), "light_level_average"],
+                ]
+            },
+            include: [{
+                model: Plant,
+                where: {
+                    species_id: species.id
+                },
+                attributes: []
+            }],
+            group: ['"Parameters"."id"']
+        });
+
+        return res.send(averages).status(200);
     }
 }
 
