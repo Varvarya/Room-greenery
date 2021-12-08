@@ -1,9 +1,25 @@
 import {Op} from 'sequelize';
-import {Organization} from "../models";
+import {Organization, Role} from "../models";
 
 class OrganizationController {
 
-    public async get(req, res) {
+    public async getById(req, res) {
+        const id = req.params.id;
+        const condition = id ? {id: id} : null;
+
+        await Organization.findAll({where: condition})
+            .then(data => {
+                res.send(data).status(200);
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Some error occurred while getting organizations"
+                });
+            });
+    }
+
+    public async getByTitle(req, res) {
         const title = req.params.title;
         const condition = title ? {title: {[Op.iLike]: `%${title}%`}} : null;
 
@@ -66,6 +82,40 @@ class OrganizationController {
                     message: err.message || "Error updating Organization with id=" + id
                 });
             });
+    }
+
+    public async deleteById(req, res) {
+        const id = req.params.id;
+
+        await Organization.destroy({
+            where: {
+                id: id
+            }
+        }).then(() => {
+            return res.send('Organization was successfully deleted').status(200);
+        }).catch(err => {
+            return res.status(500).send({
+                message:
+                    err.message || "Some error occurred while deleting Organization"
+            });
+        });
+    }
+
+    public async deleteByName(req, res) {
+        const title = req.params.title;
+
+        await Organization.destroy({
+            where: {
+                title: title
+            }
+        }).then(() => {
+            return res.send('Organization was successfully deleted').status(200);
+        }).catch(err => {
+            return res.status(500).send({
+                message:
+                    err.message || "Some error occurred while deleting Organization"
+            });
+        });
     }
 }
 
