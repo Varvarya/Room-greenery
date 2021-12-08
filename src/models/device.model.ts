@@ -29,13 +29,13 @@ export function DeviceFactory(sequelize: Sequelize): DeviceStatic {
             type: DataTypes.UUID,
             allowNull: true,
         },
-        target_params_id: {
+        current_params_id: {
             type: DataTypes.UUID,
-            allowNull: false
+            allowNull: true
         },
         plant_id: {
             type: DataTypes.UUID,
-            allowNull: false
+            allowNull: true
         },
         is_working: {
             type: DataTypes.BOOLEAN,
