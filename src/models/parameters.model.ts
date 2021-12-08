@@ -11,11 +11,11 @@ export enum ParamsStatus {
 
 export interface ParamsAttributes {
     id?: string;
-    CO2_level: number;
-    ground_humidity: number;
-    air_humidity: number;
-    air_temperature: number;
-    light_level: number;
+    co2_level?: number;
+    ground_humidity?: number;
+    air_humidity?: number;
+    air_temperature?: number;
+    light_level?: number;
 }
 
 export interface ParamsModel extends Model<ParamsAttributes>, ParamsAttributes {
@@ -23,7 +23,7 @@ export interface ParamsModel extends Model<ParamsAttributes>, ParamsAttributes {
 }
 
 export class Params extends Model<ParamsModel, ParamsAttributes> {
-    CO2_level_aberrance = 10;
+    co2_level_aberrance = 10;
     ground_humidity_aberrance = 10;
     air_humidity_aberrance = 10;
     air_temperature_aberrance = 10;
@@ -41,42 +41,32 @@ export function ParamsFactory(sequelize: Sequelize): ParamsStatic {
             primaryKey: true,
             defaultValue: DataTypes.UUIDV4
         },
-        CO2_level: {
-            type: DataTypes.NUMBER,
-            allowNull: false,
+        co2_level: {
+            type: DataTypes.INTEGER,
             defaultValue: 500,
             comment: 'in ppm'
         },
         ground_humidity: {
-            type: DataTypes.NUMBER,
-            allowNull: false,
+            type: DataTypes.INTEGER,
             defaultValue: 20,
             comment: 'in percents'
         },
         air_humidity: {
-            type: DataTypes.NUMBER,
-            allowNull: false,
+            type: DataTypes.INTEGER,
             defaultValue: 40,
             comment: 'in percents'
         },
         air_temperature: {
-            type: DataTypes.NUMBER,
-            allowNull: false,
+            type: DataTypes.INTEGER,
             defaultValue: 25,
             comment: 'in Celsius'
         },
         light_level: {
-            type: DataTypes.NUMBER,
-            allowNull: false,
+            type: DataTypes.INTEGER,
             defaultValue: 500,
             comment: 'in Lux'
         }
     }, {
-        getterMethods: {
-            getId() {
-                return this._attributes.id;
-            }
-        },
         freezeTableName: true,
         tableName: 'Parameters',
         timestamps: false,

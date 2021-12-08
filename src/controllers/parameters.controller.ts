@@ -2,7 +2,7 @@ import {Device, Params, Plant} from "../models";
 import {ParamsStatus} from "../models/parameters.model";
 
 interface ParamsControllerAttributes {
-    status: ParamsStatus;
+    status: ParamsStatus | string;
 
     get(req: Request, res: Response): Promise<void>;
 
@@ -17,7 +17,7 @@ class ParamsController implements ParamsControllerAttributes {
     status = ParamsStatus.Normal;
 
     public async get(req, res) {
-        const id = req.body.id;
+        const id = req.params.id;
 
         await Params.findByPk(id)
             .then(data => {
@@ -26,39 +26,85 @@ class ParamsController implements ParamsControllerAttributes {
             .catch(err => {
                 res.status(500).send({
                     message:
-                        err.message || "Some error occurred while getting users"
+                        err.message || "Some error occurred while getting parameters"
                 });
             });
     }
 
+    public async findPlantTargetParamsId(paramsId: string) {
+        await Device.findOne({
+            where: {
+                current_params_id: paramsId
+            }
+        }).then(async device => {
+            if (device.plant_id) {
+                await Plant.findByPk(device.plant_id)
+                    .then((data) => {
+                        if (data) return data.target_params_id;
+                    }).catch(() => {
+                            return null;
+                        }
+                    )
+            }
+        })
+
+        return null;
+    }
+
+    public async check(current: string, goal: string) {
+        const currentParams = await Params.findByPk(current);
+        const goalParams = await Params.findByPk(goal);
+
+        let points = 0;
+
+        if (goalParams)
+            for (const [key, value] of Object.entries(currentParams)) {
+                if (key != "id")
+                    points += +((Math.abs(value - goalParams[key]) / value) < Params[key]);
+            }
+
+        return ParamsStatus[points];
+    }
+
     public async update(req, res) {
         const id = req.params.id;
-        const {CO2_level, ground_humidity, air_humidity, air_temperature, light_level} = req.body;
 
-        await Params.findByPk(id).then(async data => {
+        await Params.findByPk(id).then(async (data) => {
             if (data) {
-                if (CO2_level) data.set({CO2_level: CO2_level});
+                let newParam = {
+                    co2_level: undefined,
+                    ground_humidity: undefined,
+                    air_humidity: undefined,
+                    air_temperature: undefined,
+                    light_level: undefined
+                };
 
-                if (ground_humidity) data.set({ground_humidity: ground_humidity});
+                newParam.co2_level = (req.body.co2_level) ? (req.body.co2_level) : data.co2_level;
+                newParam.ground_humidity = (req.body.ground_humidity) ? (req.body.ground_humidity) : data.ground_humidity;
+                newParam.air_humidity = (req.body.air_humidity) ? (req.body.air_humidity) : data.air_humidity;
+                newParam.air_temperature = (req.body.air_temperature) ? (req.body.air_temperature) : data.air_temperature;
+                newParam.light_level = (req.body.light_level) ? (req.body.light_level) : data.light_level;
 
-                if (air_humidity) data.set({air_humidity: air_humidity});
+                await Params.update(newParam,
+                    {
+                        where: {
+                            id: req.params.id,
+                        }
+                    }).then(async () => {
+                    const target = await this.findPlantTargetParamsId(id);
 
-                if (air_temperature) data.set({air_temperature: air_temperature});
+                    let status = ParamsStatus[2].toString();
 
-                if (light_level) data.set({light_level: light_level});
+                    if (target !== null) {
+                        status = await this.check(id, target);
+                    }
 
-                await data.save();
-
-                const target = await this.findPlantTargetParamsId(id);
-
-                const status = await this.check(id, target);
-
-                return res.send(`Params was successfully updated. Parameters are in ${this.status[status]} condition`).status(200);
-            } else {
-                res.status(500).send({
-                    message:
-                        "Some error occurred while updating params"
-                });
+                    return res.send(`Params was successfully updated. Parameters are in ${status} condition`).status(200);
+                }).catch(err =>
+                    res.status(500).send({
+                        message:
+                            err.message || "Some error occurred while updating params"
+                    }));
             }
         }).catch(err => {
             res.status(500).send({
@@ -83,38 +129,6 @@ class ParamsController implements ParamsControllerAttributes {
                     err.message || "Some error occurred while deleting params"
             });
         });
-    }
-
-    public async findPlantTargetParamsId(paramsId: string) {
-        const device = await Device.findOne({
-            where: {
-                current_params_id: paramsId
-            }
-        }).then(async device => {
-            await Plant.findByPk(device.plant_id)
-                .then((data) => {
-                    if (data) return data.target_params_id;
-                }).catch(() => {
-                    return null;
-                }
-            )
-        })
-
-        return null;
-    }
-
-    public async check(current: string, goal: string) {
-        const currentParams = await Params.findByPk(current);
-        const goalParams = await Params.findByPk(goal);
-
-        let points = 0;
-
-        for (const [key, value] of Object.entries(currentParams)) {
-            points += +((Math.abs(value - goalParams[key]) / value) < Params[key]);
-        }
-        ;
-
-        return ParamsStatus[points];
     }
 }
 
