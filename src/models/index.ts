@@ -12,12 +12,6 @@ import {DeviceFactory} from "./device.model";
 export const sequelize = new Sequelize.Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     host: dbConfig.HOST,
     dialect: 'postgres',
-    pool: {
-        max: dbConfig.pool.max,
-        min: dbConfig.pool.min,
-        acquire: dbConfig.pool.acquire,
-        idle: dbConfig.pool.idle
-    }
 });
 
 export const Organization = OrganizationFactory(sequelize);
@@ -34,7 +28,11 @@ User.belongsTo(Role, {
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE'
 });
-Role.hasMany(User);
+Role.hasMany(User, {
+    foreignKey: 'role_id',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
 
 // One to Many Organization-User relationship
 User.belongsTo(Organization, {
@@ -42,7 +40,11 @@ User.belongsTo(Organization, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE'
 });
-Organization.hasMany(User);
+Organization.hasMany(User, {
+    foreignKey: 'organization_id',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
 
 // One to Many Organization-Device relationship
 Device.belongsTo(Organization, {
@@ -50,31 +52,55 @@ Device.belongsTo(Organization, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE'
 });
-Organization.hasMany(Device);
+Organization.hasMany(Device, {
+    foreignKey: 'organization_id',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
 
 //One to One Device-Plant relationship
-Device.hasOne(Plant, {
+Device.belongsTo(Plant, {
     foreignKey: 'plant_id',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE'
 });
-Plant.belongsTo(Device);
+Plant.hasOne(Device, {
+    foreignKey: 'plant_id',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
 
 //One to One Device-Params relationship
-Device.hasOne(Params, {
+Device.belongsTo(Params, {
+    foreignKey: {
+        name: 'current_params_id',
+        allowNull: null,
+        defaultValue: null
+    },
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
+Params.hasOne(Device,{
     foreignKey: 'current_params_id',
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE'
 });
-Params.belongsTo(Device);
 
 //One to One Plant-Params relationship
-Plant.hasOne(Params, {
+Plant.belongsTo(Params, {
+    foreignKey: {
+        name: 'target_params_id',
+        allowNull: null,
+        defaultValue: null
+    },
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
+Params.hasOne(Plant, {
     foreignKey: 'target_params_id',
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE'
 });
-Params.belongsTo(Plant);
 
 //One to Many Species-Plant relationship
 Plant.belongsTo(Species, {
@@ -82,4 +108,8 @@ Plant.belongsTo(Species, {
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE'
 });
-Species.hasMany(Plant);
+Species.hasMany(Plant, {
+    foreignKey: 'species_id',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
