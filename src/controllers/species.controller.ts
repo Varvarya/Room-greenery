@@ -35,7 +35,7 @@ class SpeciesController {
             name: req.body.name,
         };
 
-        await Species.create(species)
+        Species.create(species)
             .then(data => {
                 res.send(data).status(200);
             })
@@ -48,26 +48,23 @@ class SpeciesController {
     }
 
     public async update(req, res) {
-        const id = req.params.id;
-        const name = req.body.title;
+        const species_id = req.params.id;
+        const title = req.body.title;
 
-        Species.update({name: name}, {
-            where: {id: id}
-        })
-            .then(data => {
-                if (data) {
-                    res.send({
-                        message: "Species was updated successfully."
-                    });
-                } else {
-                    res.send({
-                        message: `Cannot update Species with id=${id}.`
-                    });
-                }
+        const current = await Species.findOne({
+            where: {id: species_id},
+        });
+
+        current.name = req.body.title;
+        current.save()
+            .then(() => {
+                res.send({
+                    message: "Species was updated successfully."
+                })
             })
             .catch(err => {
                 res.status(500).send({
-                    message: err.message || "Error updating Species with id=" + id
+                    message: err.message || "Error updating Species with id=" + species_id
                 });
             });
     }

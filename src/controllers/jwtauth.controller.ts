@@ -39,6 +39,9 @@ class JwtAuthController {
                 return res.status(500).send({message: err.message});
             })
         }
+        else {
+            res.status(500).send({message: 'Please, provide all required fields'})
+        }
     }
 
     public async signIn(req, res) {

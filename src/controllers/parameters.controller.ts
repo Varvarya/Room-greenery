@@ -1,4 +1,4 @@
-import {Device, Params, Plant} from "../models";
+import {Device, Params, Plant, History, HistoryTime} from "../models";
 import {ParamsStatus} from "../models/parameters.model";
 
 interface ParamsControllerAttributes {

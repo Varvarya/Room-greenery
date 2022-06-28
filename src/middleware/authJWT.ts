@@ -25,7 +25,7 @@ const verifyToken = (req, res, next) => {
 const isAdmin = (req, res, next) => {
     User.findByPk(req.userId).then(user => {
         Role.findByPk(user.role_id).then(role => {
-            if (role.title !== 'administrator') {
+            if (role.title !== 'Administrator') {
                 return res.status(403).send({
                     message: "Require Admin Role!"
                 });
@@ -39,7 +39,7 @@ const isAdmin = (req, res, next) => {
 const isModerator = (req, res, next) => {
     User.findByPk(req.userId).then(user => {
         Role.findByPk(user.role_id).then(role => {
-            if (role.title !== 'moderator') {
+            if (role.title !== 'Moderator') {
                 return res.status(403).send({
                     message: "Require Moderator Role!"
                 });
@@ -53,7 +53,7 @@ const isModerator = (req, res, next) => {
 const isAdminOrModer = (req, res, next) => {
     User.findByPk(req.userId).then(user => {
         Role.findByPk(user.role_id).then(role => {
-            if (role.title !== 'moderator' && role.title !== 'administrator') {
+            if (role.title !== 'Moderator' && role.title !== 'Administrator') {
                 return res.status(403).send({
                     message: "Require Admin or Moderator Role!"
                 });

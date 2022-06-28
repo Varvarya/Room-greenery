@@ -21,6 +21,8 @@
     "express": "^4.17.1",
     "gzipme": "^1.0.0",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.3",
+    "moment-timezone": "^0.5.34",
     "node-cron": "^3.0.0",
     "path-to-regexp": "^6.2.0",
     "pg": "^8.7.1",

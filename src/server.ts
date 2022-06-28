@@ -10,10 +10,12 @@ import paramsRouter from './routers/parameters.routers';
 import plantRouter from './routers/plant.router';
 import roleRouter from './routers/role.router';
 import speciesRouter from './routers/species.router';
+import statisticsRouter from './routers/history.router'
 import dbConfig from "./dbconfig/db.config";
 import compress from 'gzipme';
 import fs from 'fs';
 import cron from 'node-cron';
+import {AddHistoryTime} from "./history";
 
 class Server {
     private app;
@@ -27,23 +29,27 @@ class Server {
         this.config();
         this.routerConfig();
         this.dbConnect();
-        this.startSchedule();
     }
 
     private config() {
-        this.app.use(bodyParser.urlencoded({ extended:true }));
+        this.app.use(bodyParser.urlencoded({extended: true}));
         this.app.use(bodyParser.json()); // 100kb default
     }
 
     private dbConnect() {
-        /*sequelize.sync()
-            .then(() => console.log("db synchronized"))
-            .catch(() => {
+        sequelize.sync()
+            .then(() => {
+                console.log("db synchronized");
+            })
+            .then(() => this.schedulesInit())
+            .catch((error) => {
+                console.log(error);
                 throw "error";
-            });*/
+            });
         sequelize.authenticate()
             .then(() => console.log("connected to db"))
-            .catch(() => {
+            .catch((error) => {
+                console.log(error);
                 throw "error";
             });
     }
@@ -51,20 +57,24 @@ class Server {
     private dbBackup() {
         execute(
             `pg_dump -U ${dbConfig.USER} -d ${dbConfig.DB} -f ${this.fileName} -F t`,
-        ).then(async ()=> {
+        ).then(async () => {
             await compress(this.fileName);
             fs.unlinkSync(this.fileName);
             console.log("Finito");
-        }).catch(err=> {
+        }).catch(err => {
             console.log(err);
         })
     }
 
+    private schedulesInit() {
+        this.historyInsert();
+    }
+
     private dbRestore() {
         execute(`pg_restore -cC -d ${dbConfig.DB} ${this.fileNameGzip}`)
-            .then(async ()=> {
+            .then(async () => {
                 console.log("Restored");
-            }).catch(err=> {
+            }).catch(err => {
             console.log(err);
         })
     }
@@ -72,6 +82,12 @@ class Server {
     private startSchedule() {
         cron.schedule('* * * * *', () => {
             this.dbBackup();
+        }, {});
+    }
+
+    private historyInsert() {
+        cron.schedule('0 * * * *', () => {
+            AddHistoryTime();
         }, {});
     }
 
@@ -90,14 +106,18 @@ class Server {
         this.app.use('/api/devices', deviceRouter);
         this.app.use('/api/parameters', paramsRouter);
         this.app.use('/api/plants', plantRouter);
-        this.app.use('/api/role', roleRouter);
+        this.app.use('/api/roles', roleRouter);
+        this.app.use('/api/statistics', statisticsRouter);
     }
 
     public start = (port: number) => {
         return new Promise((resolve, reject) => {
             this.app.listen(port, () => {
                 resolve(port);
-            }).on('error', (err: Object) => reject(err));
+            }).on('error', (err: Object) => {
+                console.log(err);
+                reject(err)
+            });
         });
     }
 }

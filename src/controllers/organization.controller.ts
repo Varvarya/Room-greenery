@@ -3,11 +3,24 @@ import {Organization, Role} from "../models";
 
 class OrganizationController {
 
+    public async getList(req, res) {
+        await Organization.findAll()
+            .then(data => {
+                res.send(data).status(200);
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Some error occurred while getting organizations"
+                });
+            });
+    }
+
     public async getById(req, res) {
         const id = req.params.id;
         const condition = id ? {id: id} : null;
 
-        await Organization.findAll({where: condition})
+        await Organization.findAll({where: {id: req.params.id}})
             .then(data => {
                 res.send(data).status(200);
             })

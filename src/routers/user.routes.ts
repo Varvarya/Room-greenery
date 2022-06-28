@@ -13,7 +13,7 @@ router.get(
 );
 router.get(
     "/test/moder",
-    [authJwt.verifyToken, authJwt.isAdmin],
+    [authJwt.verifyToken, authJwt.isModerator],
     userController.moderatorBoard
 );
 router.get(

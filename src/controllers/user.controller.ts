@@ -21,20 +21,20 @@ class UserController {
         const surname = req.body.surname;
         const condition = {
             name: name ? {
-                [Op.or]: {
-                    [Op.iLike]: `%${name}%`,
-                    [Op.iLike]: `%${surname}%`,
-                }
+                [Op.or]: [
+                {[Op.iLike]: `%${name}%`},
+                    {[Op.iLike]: `%${surname}%`},
+                ]
             } : null,
             surname: surname ? {
-                [Op.or]: {
-                    [Op.iLike]: `%${name}%`,
-                    [Op.iLike]: `%${surname}%`,
-                }
+                [Op.or]: [
+                    {[Op.iLike]: `%${name}%`},
+                    {[Op.iLike]: `%${surname}%`,
+                }]
             } : null
         };
 
-        await User.findAll({where: condition})
+        User.findAll({where: condition})
             .then(data => {
                 res.send(data).status(200);
             })
@@ -84,19 +84,21 @@ class UserController {
         const id = req.params.userId;
         const {name, surname, email, password, newPassword} = req.body;
 
-        await User.findByPk(id).then(user => {
+        User.findByPk(id).then(user => {
             if (user) {
                 if (name) user.set({name: name});
                 if (surname) user.set({surname: surname});
 
                 if (email) user.set({email: email});
 
-                const passwordIsValid = bcrypt.compareSync(
-                    password,
-                    user.password
-                );
+                if (password) {
+                    const passwordIsValid = bcrypt.compareSync(
+                        password,
+                        user.password
+                    );
+                    if (passwordIsValid && newPassword) user.set({password: bcrypt.hashSync(newPassword, 8)});
+                }
 
-                if (passwordIsValid && newPassword) user.set({password: bcrypt.hashSync(newPassword, 8)});
 
                 user.save();
                 return res.send('User was successfully updated').status(200);

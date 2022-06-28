@@ -5,6 +5,7 @@ import {authJwt} from "../middleware";
 const router = Router();
 const organizationsController = new OrganizationController();
 
+router.get('', [authJwt.verifyToken, authJwt.isAdmin], organizationsController.getList);
 router.get('/id/:id', [authJwt.verifyToken, authJwt.isAdmin], organizationsController.getById);
 router.get('/name/:title', [authJwt.verifyToken, authJwt.isAdminOrModer], organizationsController.getByTitle);
 router.post('/', [authJwt.verifyToken, authJwt.isAdmin], organizationsController.create);

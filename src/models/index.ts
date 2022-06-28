@@ -7,6 +7,8 @@ import {ParamsFactory} from "./parameters.model";
 import {SpeciesFactory} from "./species.model";
 import {PlantFactory} from "./plant.model";
 import {DeviceFactory} from "./device.model";
+import {HistoryFactory} from "./history.model";
+import {HistoryTimeFactory} from "./history_time.";
 
 
 export const sequelize = new Sequelize.Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
@@ -21,6 +23,8 @@ export const Params = ParamsFactory(sequelize);
 export const Species = SpeciesFactory(sequelize);
 export const Plant = PlantFactory(sequelize);
 export const Device = DeviceFactory(sequelize);
+export const History = HistoryFactory(sequelize);
+export const HistoryTime = HistoryTimeFactory(sequelize);
 
 // One to Many Role-User relationship
 User.belongsTo(Role, {
@@ -82,6 +86,30 @@ Device.belongsTo(Params, {
 });
 Params.hasOne(Device,{
     foreignKey: 'current_params_id',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
+
+//One to Many Device-History relationship
+History.belongsTo(Device, {
+    foreignKey: {name: 'device_id', allowNull: false},
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+});
+Device.hasMany(History, {
+    foreignKey: 'device_id',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+});
+
+//One to Many History-HistoryTime relationship
+History.belongsTo(HistoryTime, {
+    foreignKey: {name: 'history_time_id', allowNull: false},
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+});
+HistoryTime.hasMany(History, {
+    foreignKey: 'history_time_id',
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE'
 });

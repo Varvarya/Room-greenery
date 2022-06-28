@@ -2,14 +2,15 @@ import {Role, User} from '../models';
 
 const checkDuplicateUsernameOrEmail = (req, res, next) => {
     // Username
-    const name = req.body.name || null;
-    const surname = req.body.surname || null
-
-
+    // const condition = {};
+    // if (req.body.name) {
+    //     name: req.body.name;
+    // };
+    // const surname = req.body.surname || null
     User.findOne({
         where: {
-            name: name,
-            surname: surname,
+            name: req.body.name || '',
+            surname: req.body.surname || '',
         }
     }).then(user => {
         if (user) {
@@ -20,7 +21,7 @@ const checkDuplicateUsernameOrEmail = (req, res, next) => {
             // Email
             User.findOne({
                 where: {
-                    email: req.body.email
+                    email: req.body.email || ''
                 }
             }).then(user => {
                 if (user) {
@@ -30,9 +31,13 @@ const checkDuplicateUsernameOrEmail = (req, res, next) => {
                 } else {
                     next();
                 }
-            });
+            })
+                .catch(err => res.status(500).send({message: err.message}));
         }
     })
+        .catch((err) => {
+            return res.status(500).send({message: err.message});
+        })
 };
 
 const checkRoleExisted = (req, res, next) => {
@@ -51,7 +56,10 @@ const checkRoleExisted = (req, res, next) => {
                     next();
                 }
             });
+    } else {
+        next();
     }
+
 }
 
 const verifySignUp = {
