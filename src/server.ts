@@ -11,16 +11,18 @@ import plantRouter from './routers/plant.router';
 import roleRouter from './routers/role.router';
 import speciesRouter from './routers/species.router';
 import statisticsRouter from './routers/history.router'
+import dbRouter from "./routers/db.router";
 import dbConfig from "./dbconfig/db.config";
-import compress from 'gzipme';
-import fs from 'fs';
+import cors from 'cors'
 import cron from 'node-cron';
 import {AddHistoryTime} from "./history";
+import {exec} from "child_process";
 
 class Server {
     private app;
     date = new Date();
     currentDate = `${this.date.getFullYear()}.${this.date.getMonth() + 1}.${this.date.getDate()}.${this.date.getHours()}.${this.date.getMinutes()}`;
+    filePath = `./backups`;
     fileName = `database-backup-${this.currentDate}.tar`;
     fileNameGzip = `${this.fileName}.tar.gz`;
 
@@ -34,6 +36,7 @@ class Server {
     private config() {
         this.app.use(bodyParser.urlencoded({extended: true}));
         this.app.use(bodyParser.json()); // 100kb default
+        this.app.use(cors({credentials: true, origin: true}));
     }
 
     private dbConnect() {
@@ -55,19 +58,15 @@ class Server {
     }
 
     private dbBackup() {
-        execute(
-            `pg_dump -U ${dbConfig.USER} -d ${dbConfig.DB} -f ${this.fileName} -F t`,
-        ).then(async () => {
-            await compress(this.fileName);
-            fs.unlinkSync(this.fileName);
-            console.log("Finito");
-        }).catch(err => {
-            console.log(err);
-        })
+        console.log('Backup started')
+        exec(
+            `pg_dump -U ${dbConfig.USER} --dbname=postgresql://${dbConfig.USER}:${dbConfig.PASSWORD}@${dbConfig.HOST}:5432/${dbConfig.DB} -f ${this.filePath}/${this.fileName}`,
+        )
     }
 
     private schedulesInit() {
         this.historyInsert();
+        this.startSchedule();
     }
 
     private dbRestore() {
@@ -80,7 +79,7 @@ class Server {
     }
 
     private startSchedule() {
-        cron.schedule('* * * * *', () => {
+        cron.schedule('0 0 * * *', () => {
             this.dbBackup();
         }, {});
     }
@@ -108,6 +107,7 @@ class Server {
         this.app.use('/api/plants', plantRouter);
         this.app.use('/api/roles', roleRouter);
         this.app.use('/api/statistics', statisticsRouter);
+        this.app.use('/api/db', dbRouter);
     }
 
     public start = (port: number) => {

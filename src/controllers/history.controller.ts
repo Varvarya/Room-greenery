@@ -1,6 +1,6 @@
 import {History, HistoryTime} from "../models";
 import moment from "moment-timezone";
-import {Op} from "sequelize";
+import Sequelize, {Op} from "sequelize";
 
 class HistoryController {
 
@@ -12,6 +12,8 @@ class HistoryController {
 
 
         await History.findAll({
+            raw: true,
+            nest: true,
             where: {
                 device_id: deviceId,
             },
@@ -22,8 +24,17 @@ class HistoryController {
                     date_time: {
                         [Op.between]: [from, till]
                     }
+                },
+                attributes:{
+                    exclude: ['id', 'dateTime'],
                 }
             }],
+            attributes: {
+                include: [
+                    [Sequelize.col('date_time'), 'date_time'],
+                ],
+                exclude: ['device_id', 'history_time_id']
+            },
         })
             .then(data => {
                 res.send(data).status(200);

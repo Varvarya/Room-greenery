@@ -8,9 +8,9 @@ const AddHistoryTime = async () => {
         raw: true,
         nest: true,
             include: [{
-                model: Params,
-                required: true
-            }],
+            model: Params,
+            required: true
+        }],
             order: [
                 ['id', 'ASC'],
             ],

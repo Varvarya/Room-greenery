@@ -3,23 +3,27 @@ import config from "../authconfig/auth.config";
 import {Role, User } from "../models";
 
 const verifyToken = (req, res, next) => {
-    const token = req.headers["Authorization"] || req.headers["x-access-token"];
+    const bearerHeader = req.headers["authorization"];
 
-    if (!token) {
-        return res.status(403).send({
-            message: "No token provided!"
-        });
-    }
-
-    jwt.verify(token, config.secret, (err, decoded) => {
-        if (err) {
-            return res.status(401).send({
-                message: "Unauthorized!"
+    if (typeof bearerHeader !== 'undefined') {
+        const [bearer, bearerToken] = bearerHeader.split(' ');
+        if (!bearerToken) {
+            return res.status(403).send({
+                message: "No token provided!"
+            });
+        } else {
+            jwt.verify(bearerToken, config.secret, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({
+                        message: "Unauthorized!"
+                    });
+                }
+                req.token = bearerToken;
+                req.userId = decoded.id;
+                next();
             });
         }
-        req.userId = decoded.id;
-        next();
-    });
+    }
 };
 
 const isAdmin = (req, res, next) => {
