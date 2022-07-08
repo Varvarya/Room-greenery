@@ -1,6 +1,15 @@
 import {Role} from "../models";
 
 class RoleController {
+public async getAll(req, res) {
+    await Role.findAll()
+        .then(data => res.send(data).status(200))
+        .catch(err =>
+            res.status(500).send({
+                message: err.message || "Some error occurred while getting Role"}
+))
+};
+
 
     public async get(req, res) {
         const title = req.params.role;

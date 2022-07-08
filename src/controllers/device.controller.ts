@@ -1,5 +1,5 @@
-import {Op} from "sequelize";
-import {Device, Params, Plant, sequelize, User} from "../models";
+import Sequelize, {Op} from "sequelize";
+import {Device, Params, Plant, sequelize, Species, User} from "../models";
 
 class DeviceController {
 
@@ -32,14 +32,29 @@ class DeviceController {
                     organization_id: organizationId,
                     plant_id: {[Op.not]: null}
                 },
-            include: [{
+            include: [
+                {
+                    model: Plant,
+                    required: false,
+                    attributes:{
+                        exclude: ['target_params_id', 'species_id'],
+                    },
+                    include: [{
+                        model: Params,
+                        required: true,
+                    }, {
+                            model: Species,
+                            required: true,
+                        }]
+                },
+                {
                     model: Params,
                 required: true,
             },
-                {
-                    model: Plant,
-                    required: false
-                }]
+              ],
+            attributes: {
+                    exclude: ['organization_id', 'current_params_id', 'plant_id'],
+            }
             }).catch(err =>
                 res.status(500).send({
                     message:
@@ -51,8 +66,15 @@ class DeviceController {
                 where: {
                     organization_id: organizationId,
                     plant_id: {[Op.is]: null}
-                }
-            }).catch(err =>
+                },
+            include: [{
+                model: Params,
+                required: true,
+            }],
+            attributes: {
+                    exclude: ['organization_id', 'plant_id', 'current_params_id']
+            }
+        }).catch(err =>
                 res.status(500).send({
                     message:
                         err.message || "Some error occurred while getting device"

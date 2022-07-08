@@ -50,7 +50,10 @@ class Server {
                 throw "error";
             });
         sequelize.authenticate()
-            .then(() => console.log("connected to db"))
+            .then(() => {
+                console.log("connected to db");
+                }
+            )
             .catch((error) => {
                 console.log(error);
                 throw "error";

@@ -28,11 +28,6 @@ export function SpeciesFactory(sequelize: Sequelize): SpeciesStatic {
             unique: true,
         },
     }, {
-        getterMethods: {
-            getId() {
-                return this._attributes.id;
-            }
-        },
         freezeTableName: true,
         tableName: 'Species',
         timestamps: false,
