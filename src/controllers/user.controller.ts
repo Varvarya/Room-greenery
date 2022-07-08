@@ -17,29 +17,42 @@ class UserController {
     }
 
     public async getAllWithOrganizations (req, res) {
-        await User.findAll(
-            {
-                raw: true,
-                nest: true,
-                include: [{
-                    model: Organization,
-                    required: false,
-                    attributes: {
-                        exclude: [
-                            'id', 'title'
-                        ]
+        let condition={};
+
+        await User.findByPk(req.userId).then(async user => {
+            await Role.findByPk(user.role_id).then(role => {
+                if (role.title === 'Moderator') {
+
+                    condition = {
+                        'organization_id': user.organization_id,
                     }
-                },
-                    {
-                        model: Role,
-                        required: true,
+                }
+            });
+
+            await User.findAll(
+                {
+                    where: condition,
+                    raw: true,
+                    nest: true,
+                    include: [{
+                        model: Organization,
+                        required: Object.keys(condition).length > 0 ? true : false,
                         attributes: {
                             exclude: [
                                 'id', 'title'
                             ]
                         }
-                    }],
-                attributes:{
+                    },
+                        {
+                            model: Role,
+                            required: true,
+                            attributes: {
+                                exclude: [
+                                    'id', 'title'
+                                ]
+                            }
+                        }],
+                    attributes: {
                         include: [
                             [Sequelize.col('User.id'), 'id'],
                             [Sequelize.col('User.name'), 'name'],
@@ -48,24 +61,25 @@ class UserController {
                             [Sequelize.col('Organization.title'), 'organization'],
                             [Sequelize.col('Role.title'), 'role']
                         ],
-                    exclude: ['password'],
-                },
-                order: [
-                    ["name", "ASC"],
-                    ["surname", "ASC"],
-                ],
-                group: ['User.id','User.name', 'Role.id', 'Role.title','Organization.id','User.surname','Organization.title'],
-            }
-        )
-            .then(data => {
-                res.send(data).status(200);
-            })
-            .catch(err => {
-                res.status(500).send({
-                    message:
-                        err.message || "Some error occurred while getting user"
+                        exclude: ['password'],
+                    },
+                    order: [
+                        ["name", "ASC"],
+                        ["surname", "ASC"],
+                    ],
+                    group: ['User.id', 'User.name', 'Role.id', 'Role.title', 'Organization.id', 'User.surname', 'Organization.title'],
+                }
+            )
+                .then(data => {
+                    res.send(data).status(200);
+                })
+                .catch(err => {
+                    res.status(500).send({
+                        message:
+                            err.message || "Some error occurred while getting user"
+                    });
                 });
-            });
+        })
     }
 
     public async get(req, res) {

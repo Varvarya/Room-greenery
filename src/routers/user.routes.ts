@@ -26,7 +26,7 @@ router.get('/all',
     userController.getAll
 )
 router.get('/organizations',
-    [authJwt.verifyToken, authJwt.isAdmin],
+    [authJwt.verifyToken, authJwt.isAdminOrModer],
     userController.getAllWithOrganizations)
 router.get('/me',
     [authJwt.verifyToken],
