@@ -1,5 +1,5 @@
 import {Op} from "sequelize";
-import {Device, Params, sequelize, User} from "../models";
+import {Device, Params, Plant, sequelize, User} from "../models";
 
 class DeviceController {
 
@@ -31,7 +31,15 @@ class DeviceController {
                 where: {
                     organization_id: organizationId,
                     plant_id: {[Op.not]: null}
-                }
+                },
+            include: [{
+                    model: Params,
+                required: true,
+            },
+                {
+                    model: Plant,
+                    required: false
+                }]
             }).catch(err =>
                 res.status(500).send({
                     message:
@@ -88,7 +96,6 @@ class DeviceController {
 
 
     public async create(req, res) {
-        const id = req.body.id;
         const org_id = (await User.findByPk(req.userId)).organization_id;
         const plant_id = req.body.plantId || null;
 

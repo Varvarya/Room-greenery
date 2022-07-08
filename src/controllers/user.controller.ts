@@ -1,5 +1,5 @@
-import {Op} from 'sequelize';
-import {Organization, User} from "../models";
+import Sequelize, {Op} from 'sequelize';
+import {Organization, Role, User} from "../models";
 import bcrypt from "bcryptjs";
 
 class UserController {
@@ -16,23 +16,79 @@ class UserController {
             });
     }
 
+    public async getAllWithOrganizations (req, res) {
+        await User.findAll(
+            {
+                raw: true,
+                nest: true,
+                include: [{
+                    model: Organization,
+                    required: false,
+                    attributes: {
+                        exclude: [
+                            'id', 'title'
+                        ]
+                    }
+                },
+                    {
+                        model: Role,
+                        required: true,
+                        attributes: {
+                            exclude: [
+                                'id', 'title'
+                            ]
+                        }
+                    }],
+                attributes:{
+                        include: [
+                            [Sequelize.col('User.id'), 'id'],
+                            [Sequelize.col('User.name'), 'name'],
+                            [Sequelize.col('User.surname'), 'surname'],
+                            [Sequelize.col('User.email'), 'email'],
+                            [Sequelize.col('Organization.title'), 'organization'],
+                            [Sequelize.col('Role.title'), 'role']
+                        ],
+                    exclude: ['password'],
+                },
+                order: [
+                    ["name", "ASC"],
+                    ["surname", "ASC"],
+                ],
+                group: ['User.id','User.name', 'Role.id', 'Role.title','Organization.id','User.surname','Organization.title'],
+            }
+        )
+            .then(data => {
+                res.send(data).status(200);
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Some error occurred while getting user"
+                });
+            });
+    }
+
     public async get(req, res) {
+        console.log(req.body);
         const name = req.body.name;
         const surname = req.body.surname;
-        const condition = {
-            name: name ? {
-                [Op.or]: [
-                {[Op.iLike]: `%${name}%`},
-                    {[Op.iLike]: `%${surname}%`},
-                ]
-            } : null,
-            surname: surname ? {
+        let condition = {};
+        if(name) {
+            condition['name'] = {
                 [Op.or]: [
                     {[Op.iLike]: `%${name}%`},
-                    {[Op.iLike]: `%${surname}%`,
-                }]
-            } : null
-        };
+                    {[Op.iLike]: `%${surname}%`},
+                ]
+            }
+        }
+        if (surname) {
+            condition['surname'] = {
+                [Op.or]: [
+                    {[Op.iLike]: `%${name}%`},
+                    {[Op.iLike]: `%${surname}%`},
+                ]
+            }
+        }
 
         User.findAll({where: condition})
             .then(data => {
@@ -67,7 +123,35 @@ class UserController {
     public async getMe(req, res) {
         await User.findByPk(req.userId,
             {
-                attributes: {exclude: ['password', 'role_id']}
+                include: [{
+                    model: Organization,
+                    required: false,
+                    attributes: {
+                        exclude: [
+                            'id', 'title'
+                        ]
+                    }
+                },
+                    {
+                        model: Role,
+                        required: true,
+                        attributes: {
+                            exclude: [
+                                'id', 'title'
+                            ]
+                        }
+                    }],
+                attributes:{
+                    include: [
+                        [Sequelize.col('User.id'), 'id'],
+                        [Sequelize.col('User.name'), 'name'],
+                        [Sequelize.col('User.surname'), 'surname'],
+                        [Sequelize.col('User.email'), 'email'],
+                        [Sequelize.col('Organization.title'), 'organization'],
+                        [Sequelize.col('Role.title'), 'role']
+                    ],
+                    exclude: ['password'],
+                },
             })
             .then(data => {
                 res.send(data).status(200);

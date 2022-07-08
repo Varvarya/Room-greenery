@@ -76,25 +76,30 @@ class OrganizationController {
         const id = req.params.id;
         const title = req.body.title;
 
-        Organization.update({title: title}, {
-            where: { id: id }
-        })
-            .then(data => {
-                if (data) {
-                    res.send({
+        console.log(id);
+
+        Organization.findByPk(id).then((organization) => {
+                if (organization) {
+                    console.log(organization);
+                    if (title) organization.set({title: title});
+
+                    organization.save();
+                    return res.send({
                         message: "Organization was updated successfully."
                     });
                 } else {
-                    res.send({
+                    return res.send({
                         message: `Cannot update Organization with id=${id}.`
                     });
                 }
-            })
+            }
+        )
             .catch(err => {
                 res.status(500).send({
-                    message: err.message || "Error updating Organization with id=" + id
+                    message:
+                        err.message || "Some error occurred while updating users"
                 });
-            });
+            })
     }
 
     public async deleteById(req, res) {

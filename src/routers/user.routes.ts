@@ -25,11 +25,14 @@ router.get('/all',
     [authJwt.verifyToken, authJwt.isAdmin],
     userController.getAll
 )
+router.get('/organizations',
+    [authJwt.verifyToken, authJwt.isAdmin],
+    userController.getAllWithOrganizations)
 router.get('/me',
     [authJwt.verifyToken],
     userController.getMe
 );
-router.get('/',
+router.post('/',
     [authJwt.verifyToken, authJwt.isAdminOrModer],
     userController.get
 );

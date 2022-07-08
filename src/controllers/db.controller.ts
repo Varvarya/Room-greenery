@@ -63,12 +63,13 @@ class DBController implements DBControllerAttributes{
     }
 
     public async restore(req,res) {
+        console.log('restore')
         const date = req.body.date;
         const fileName = this.getFileName(date);
 
         console.log('Restoring started')
         exec(
-            `psql -U ${dbConfig.USER} --dbname=postgresql://${dbConfig.USER}:${dbConfig.PASSWORD}@${dbConfig.HOST}:5432/${dbConfig.DB} -f ${fileName}`,
+            `psql -U ${dbConfig.USER} --dbname=postgresql://${dbConfig.USER}:${dbConfig.PASSWORD}@${dbConfig.HOST}:5432/${dbConfig.DB} < E:\\Study\\3_course\\2_sem\\apz\\labs\\Room-greenery\\backups\\db-backup-2022-07-07_20.00.53.sql`,
             (error, stdout, stderr) => {
                 if (error) {
                     res.status(500).send({

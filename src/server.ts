@@ -70,12 +70,8 @@ class Server {
     }
 
     private dbRestore() {
-        execute(`pg_restore -cC -d ${dbConfig.DB} ${this.fileNameGzip}`)
-            .then(async () => {
-                console.log("Restored");
-            }).catch(err => {
-            console.log(err);
-        })
+        exec(`psql -U ${dbConfig.USER} -d ${dbConfig.DB} < ${this.filePath}/${this.fileName}`)
+
     }
 
     private startSchedule() {
