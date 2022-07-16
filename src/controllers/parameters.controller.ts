@@ -69,7 +69,8 @@ class ParamsController implements ParamsControllerAttributes {
     public async update(req, res) {
         const id = req.params.id;
 
-        await Params.findByPk(id).then(async (data) => {
+        Params.findByPk(id).then(async (data) => {
+            console.log(data);
             if (data) {
                 let newParam = {
                     co2_level: undefined,
@@ -85,21 +86,46 @@ class ParamsController implements ParamsControllerAttributes {
                 newParam.air_temperature = (req.body.air_temperature) ? (req.body.air_temperature) : data.air_temperature;
                 newParam.light_level = (req.body.light_level) ? (req.body.light_level) : data.light_level;
 
-                await Params.update(newParam,
-                    {
+                await data.set(newParam);
+
+                await data.save()
+                    .then(async () => {
+                        let target;
+                    await Device.findOne({
                         where: {
-                            id: req.params.id,
+                            current_params_id: id
                         }
-                    }).then(async () => {
-                    const target = await this.findPlantTargetParamsId(id);
+                    }).then(async device => {
+                        console.log(device);
+                        if (device.plant_id) {
+                            await Plant.findByPk(device.plant_id)
+                                .then((data) => {
+                                    if (data) target = data.target_params_id;
+                                }).catch(() => {
+                                    target = null;
+                                    }
+                                )
+                        }
+                    })
 
                     let status = ParamsStatus[2].toString();
 
                     if (target !== null) {
-                        status = await this.check(id, target);
+                        const currentParams = await Params.findByPk(id);
+                        const goalParams = await Params.findByPk(target);
+
+                        let points = 0;
+
+                        if (goalParams)
+                            for (const [key, value] of Object.entries(currentParams)) {
+                                if (key != "id")
+                                    points += +((Math.abs(value - goalParams[key]) / value) < Params[key]);
+                            }
+
+                        status =  ParamsStatus[points];
                     }
 
-                    return res.send(`Params was successfully updated. Parameters are in ${status} condition`).status(200);
+                    return res.send({status: status, message:`Params was successfully updated. Parameters are in ${status} condition`}).status(200);
                 }).catch(err =>
                     res.status(500).send({
                         message:
