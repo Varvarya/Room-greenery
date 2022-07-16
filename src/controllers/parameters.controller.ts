@@ -91,29 +91,49 @@ class ParamsController implements ParamsControllerAttributes {
                 await data.save()
                     .then(async () => {
                         let target;
-                    await Device.findOne({
+                    const device = await Device.findOne({
                         where: {
                             current_params_id: id
                         }
-                    }).then(async device => {
-                        console.log(device);
-                        if (device.plant_id) {
-                            await Plant.findByPk(device.plant_id)
-                                .then((data) => {
-                                    if (data) target = data.target_params_id;
-                                }).catch(() => {
-                                    target = null;
-                                    }
-                                )
+                    });
+                    const plant =  await Plant.findOne({
+                        where: {
+                            target_params_id: id
                         }
-                    })
+                    });
+
+                    if (device) {
+                        await Plant.findByPk(device.plant_id)
+                            .then((data) => {
+                                if (data) target = data.target_params_id;
+                            }).catch(() => {
+                                    target = null;
+                                }
+                            )
+                    } else if (plant) {
+                        await Device.findOne({
+                            where: {
+                                plant_id: plant.id
+                            }
+                        }) .then((data) => {
+                            if (data) target = data.current_params_id;
+                        }).catch(() => {
+                                target = null;
+                            }
+                        )
+                    } else {
+                        res.status(500).send({
+                            message:
+                                "Some error occurred while updating params"
+                        });
+                    }
 
                     let status = ParamsStatus[2].toString();
 
-                    if (target !== null) {
-                        const currentParams = await Params.findByPk(id);
-                        const goalParams = await Params.findByPk(target);
+                        let  currentParams = await Params.findByPk(id);
+                        let goalParams = await Params.findByPk(target);
 
+                    if (target !== null) {
                         let points = 0;
 
                         if (goalParams)
